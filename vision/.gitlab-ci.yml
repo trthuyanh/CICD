@@ -1,0 +1,28 @@
+stages:
+    - build
+    - deploy
+    - showlog
+build:
+    stage: build
+    variables:
+        GIT_STRATEGY: clone
+    script:
+        - sudo cp -r . /data/vision
+        - sudo chown . /data/vision -c
+    tags:
+        - gitlab-server
+    only:
+        - tags
+deploy:
+    stage: deploy
+    when: manual
+    variables:
+        GIT_STRATEGY: none
+    script:
+        - sudo kill -9 $(ps -ef | grep "/node_modules/react-scripts/scripts/start.js" | grep -v grep | awk '{print $2}')
+        - sudo su vision -c "cd /data/vision; npm config set legacy-peer-deps true; npm install; nohup npm start 2>&1 &"
+    tags:
+        - gitlab-server
+    only:
+        - tags
+
